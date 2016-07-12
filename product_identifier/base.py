@@ -1,5 +1,6 @@
 import os
 import sys
+from redis import StrictRedis
 import product_identifier
 from product_identifier.utils import load_config_obj
 
@@ -19,6 +20,12 @@ class ApplicationUnimplementedError(Exception):
 
 class BaseApplication(object):
 
+    __redis = None
+
+    @property
+    def redis(self):
+        return self.__redis
+
     def __init__(self, config=None):
         if hasattr(product_identifier, "_instance"):
             raise ApplicationInitError("cannot reinitialize application")
@@ -31,7 +38,11 @@ class BaseApplication(object):
         self.config = load_config_obj(config)
 
         self.init()
+        self.__setup_redis()
         product_identifier._instance = self
+
+    def __setup_redis(self):
+        self.__redis = StrictRedis(**self.config.REDIS)
 
     def init(self):
         pass
