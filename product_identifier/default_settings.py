@@ -12,12 +12,15 @@ class DefaultConfig(object):
 
     TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
     STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+    DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 
     SQLALCHEMY_DATABASE_URI = "postgres://localhost/moz_productid"
-    SQLALCHEMY_TRACK_MODIFICATIONS = None
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_POOL_SIZE = 5
     SQLALCHEMY_POOL_TIMEOUT = 10
+
+    MASTER_HANDLER_POOL_SIZE = 5
 
     REDIS = {
         "host": "localhost",
