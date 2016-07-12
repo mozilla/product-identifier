@@ -1,5 +1,12 @@
+import os
+import sys
 import product_identifier
 from product_identifier.utils import load_config_obj
+
+CONFIG_PATH_LOCATIONS = [
+    '/etc/product_identifier',
+    os.path.abspath(os.path.dirname(__file__)),
+]
 
 
 class ApplicationInitError(Exception):
@@ -15,6 +22,9 @@ class BaseApplication(object):
     def __init__(self, config=None):
         if hasattr(product_identifier, "_instance"):
             raise ApplicationInitError("cannot reinitialize application")
+
+        for path in CONFIG_PATH_LOCATIONS:
+            sys.path.append(path)
 
         if config is None:
             config = 'product_identifier.default_settings.DefaultConfig'

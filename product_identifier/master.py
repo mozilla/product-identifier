@@ -1,5 +1,3 @@
-import os
-import sys
 from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -9,11 +7,6 @@ from product_identifier.base import (
     ApplicationInitError,
 )
 from product_identifier.utils import load_config_obj
-
-CONFIG_PATH_LOCATIONS = [
-    '/etc/product_identifier',
-    os.path.abspath(os.path.dirname(__file__)),
-]
 
 
 class Master(BaseApplication):
@@ -31,9 +24,6 @@ class Master(BaseApplication):
         return self.__db
 
     def init(self, config=None):
-
-        for path in CONFIG_PATH_LOCATIONS:
-            sys.path.append(path)
 
         if config is not None:
             self.config = load_config_obj(config)
