@@ -54,3 +54,4 @@ docs/_build/
 
 # Onyx-specific
 product-identifier-env/
+dump.rdb
