@@ -6,10 +6,10 @@
     "amazon": "https://www.amazon.*/dp/.*",
     "alibaba": "http://www.alibaba.com/product-detail/.+",
     "bestbuyCA": "http://www.bestbuy.ca/.+/product/.+",
-    "bestbuy": "http://www.bestbuy.com/site/.+\.p\?id=.+",
+    "bestbuy": "http://www.bestbuy.com/site/.+\\.p\\?id=.+",
     "steam": "http://store.steampowered.com/app/[0-9]+/",
     "gog": "https://www.gog.com/game/.+",
-    "sears": "http://www.sears.com/.+/p-.+\?.+",
+    "sears": "http://www.sears.com/.+/p-.+\\?.+",
     "homedepot": "http://www.homedepot.com/p/.+",
     "humblebundle": "https://www.humblebundle.com/store/.+",
     "walmart": "http://www.walmart.com/ip/.+"
