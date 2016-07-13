@@ -10,8 +10,8 @@ setup(
     package_data={"": ["*.json"]},
     include_package_data=True,
     scripts=[
-        "scripts/manage.py",
-        "scripts/master.py",
-        "scripts/worker.py",
+        "./scripts/manage.py",
+        "./scripts/master.py",
+        "./scripts/worker.py",
     ],
 )

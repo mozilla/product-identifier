@@ -42,7 +42,6 @@ class BaseApplication(object):
         self.config.SECRET_KEY = os.environ.get("SECRET_KEY") if os.environ.get("SECRET_KEY") else self.config.ENVIRONMENT
         self.config.SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI") if os.environ.get("SQLALCHEMY_DATABASE_URI") else self.config.SQLALCHEMY_DATABASE_URI
         self.config.REDIS['host'] = os.environ.get("REDIS_HOST") if os.environ.get("REDIS_HOST") else self.config.REDIS['host']
-        self.config.REDIS['port'] = int(os.environ.get("REDIS_PORT")) if os.environ.get("REDIS_PORT") else self.config.REDIS['port']
         self.config.REDIS['db'] = int(os.environ.get("REDIS_DB")) if os.environ.get("REDIS_DB") else self.config.REDIS['db']
         self.config.REDIS['password'] = os.environ.get("REDIS_PASSWORD") if os.environ.get("REDIS_PASSWORD") else self.config.REDIS['password']
 

@@ -50,3 +50,5 @@ traitlets==4.2.2
 wcwidth==0.1.7
 Werkzeug==0.11.10
 redis==2.10.5
+lxml==3.6.0
+grequests==0.3.0
