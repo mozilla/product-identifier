@@ -33,6 +33,20 @@ UserAgents = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2486.0 Safari/537.36 Edge/13.10586',
     'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36']
 
+lua = """
+redis.replicate_commands();
+local cur = tonumber((redis.call('time'))[1]);
+local prev = tonumber(redis.call('get', KEYS[2]));
+if prev ~= nil then
+  if cur-prev > 2 then
+    redis.call('set', KEYS[2], cur);
+    return redis.call('lpop',KEYS[1]);
+  end
+  return nil;
+end
+redis.call('set', KEYS[2], cur);
+return nil;"""
+
 class Worker(BaseApplication):
 
     domains = []
@@ -65,7 +79,8 @@ class Worker(BaseApplication):
             while urlToCrawl == None and domainsChecked < len(self.domains):
                 print "waiting for url to crawl"
                 print self.domains[self.lastDomainIndex]
-                urlToCrawl = self.redis.lpop(self.domains[self.lastDomainIndex])
+                domain = self.domains[self.lastDomainIndex]
+                urlToCrawl = self.redis.register_script(lua)(keys=[domain, domain+'_cooloff'], args=[])
                 self.lastDomainIndex = (self.lastDomainIndex+1)%len(self.domains)
                 domainsChecked += 1
             if urlToCrawl is not None:
