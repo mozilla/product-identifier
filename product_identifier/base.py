@@ -18,13 +18,22 @@ class ApplicationUnimplementedError(Exception):
     pass
 
 
+class LuaScripts(object):
+    pass
+
+
 class BaseApplication(object):
 
     __redis = None
+    __redis_scripts = None
 
     @property
     def redis(self):
         return self.__redis
+
+    @property
+    def scripts(self):
+        return self.__redis_scripts
 
     def __init__(self, config=None):
         if hasattr(product_identifier, "_instance"):
@@ -47,10 +56,24 @@ class BaseApplication(object):
 
         self.init()
         self.__setup_redis()
+        self.__load_redis_scripts()
         product_identifier._instance = self
 
     def __setup_redis(self):
         self.__redis = StrictRedis(**self.config.REDIS)
+
+    def __load_redis_scripts(self):
+        script_obj = LuaScripts()
+
+        fnames = [item for item in os.listdir(self.config.DATA_DIR) if item.endswith(".lua")]
+        for fname in fnames:
+            with open(os.path.join(self.config.DATA_DIR, fname), "r") as f:
+                script = f.read()
+                name, _ = os.path.splitext(fname)
+                func = self.redis.register_script(script)
+                setattr(script_obj, name, func)
+
+        self.__redis_scripts = script_obj
 
     def init(self):
         pass

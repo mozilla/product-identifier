@@ -1,5 +1,5 @@
-from gevent import monkey
-monkey.patch_all()
+#from gevent import monkey
+#monkey.patch_all()
 import gevent
 import gevent.pool
 import traceback
@@ -18,7 +18,6 @@ from product_identifier.base import (
 )
 from product_identifier.redis_keys import (
     PROCESSED_URLS_SET,
-    URLS_TO_PROCESS_LIST,
     DOMAINS_SET,
     DB_ERRORED_URL_SET,
 )
@@ -62,33 +61,31 @@ class Master(BaseApplication):
 
     def start(self):
         def handleURL():
-            from product_identifier.models import ProductURL
+            from product_identifier.models import URL
             db = Master.instance().db
             self.flask.logger.debug("JOB STARTED")
             while True:
                 try:
                     # TODO: succeptible to concurrency problems
-                    data = self.redis.blpop(URLS_TO_PROCESS_LIST, 2)
-                    if data and data[1]:
-                        in_url = data[1]
-                        self.flask.logger.debug("POPPED: {}".format(in_url))
+                    in_url = self.scripts.pop_zset()
+                    if in_url:
                         if not self.redis.sismember(PROCESSED_URLS_SET, in_url):
                             self.flask.logger.debug("PROCESSING: {}".format(in_url))
                             uri = furl(in_url)
                             domain = self.__psl.suffix(uri.host)
 
-                            if self.is_product_url(in_url):
-                                try:
-                                    p = ProductURL()
-                                    p.domain = domain
-                                    p.url = in_url
-                                    db.session.add(p)
-                                    db.session.commit()
-                                    self.flask.logger.info("ADDED_PRODUCT_URL: {}".format(in_url))
-                                except:
-                                    error = traceback.format_exc()
-                                    self.flask.logger.error("DB_ERROR: {}".format(error))
-                                    self.redis.sadd(DB_ERRORED_URL_SET, in_url)
+                            try:
+                                p = URL()
+                                p.domain = domain
+                                p.url = in_url
+                                p.is_product = self.is_product_url(in_url)
+                                db.session.add(p)
+                                db.session.commit()
+                            except:
+                                db.session.rollback()
+                                error = traceback.format_exc()
+                                self.flask.logger.error("DB_ERROR: {}".format(error))
+                                self.redis.sadd(DB_ERRORED_URL_SET, in_url)
 
                             self.redis.sadd(PROCESSED_URLS_SET, in_url)
 
@@ -98,11 +95,12 @@ class Master(BaseApplication):
                                 self.flask.logger.info("ADDED DOMAIN: {}".format(domain))
                         else:
                             self.flask.logger.debug("SKIPPING: {}".format(in_url))
+                    else:
+                        # no results, sleep
+                        gevent.sleep(1)
                 except:
-                    #error, value, traceback = sys.exc_info()
                     error = traceback.format_exc()
                     self.flask.logger.error("ERROR: {}".format(error))
-                gevent.sleep(1)
 
         for i in range(self.config.MASTER_HANDLER_POOL_SIZE):
             self.handler_pool.spawn(handleURL)

@@ -7,7 +7,7 @@ setup(
     description="A set of tools to obtain product urls",
     author="Mozilla",
     packages=find_packages(),
-    package_data={"": ["*.json"]},
+    package_data={"": ["*.json", "*.lua"]},
     include_package_data=True,
     scripts=[
         "./scripts/manage.py",

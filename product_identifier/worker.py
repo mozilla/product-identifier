@@ -1,3 +1,4 @@
+import os
 from lxml import html
 from urlparse import urlparse
 import random
@@ -7,9 +8,7 @@ import gevent
 
 from product_identifier.base import (
     BaseApplication,
-    ApplicationInitError,
 )
-from product_identifier.utils import load_config_obj
 
 UserAgents = [
     'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
@@ -33,6 +32,9 @@ UserAgents = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2486.0 Safari/537.36 Edge/13.10586',
     'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36']
 
+SKIPPED_EXTENSIONS = {".css", ".jpg", ".pdf", ".js", ".png", ".ico"}
+
+
 class Worker(BaseApplication):
 
     domains = []
@@ -42,39 +44,27 @@ class Worker(BaseApplication):
         pass
 
     def start(self):
-        self.domains = list(self.getDomains())
-        print "domains"
-        print self.domains
-        if not self.domains:
-            print "Error, no domains"
-            return
-        self.loop()
-
-    def loop(self):
         threads = [gevent.spawn(self.crawlNewDomain) for i in xrange(10)]
         gevent.joinall(threads)
 
     def getDomains(self):
-        response = self.redis.smembers(redis_keys.DOMAINS_SET)
-        return response
+        return self.redis.smembers(redis_keys.DOMAINS_SET)
 
     def crawlNewDomain(self):
         while True:
             urlToCrawl = None
-            domainsChecked = 0
-            while urlToCrawl == None and domainsChecked < len(self.domains):
-                print "waiting for url to crawl"
-                print self.domains[self.lastDomainIndex]
-                urlToCrawl = self.redis.lpop(self.domains[self.lastDomainIndex])
-                self.lastDomainIndex = (self.lastDomainIndex+1)%len(self.domains)
-                domainsChecked += 1
-            if urlToCrawl is not None:
-                self.crawlURL(urlToCrawl)
-            print "sleep"
-            gevent.sleep(1)
+            domains = list(self.getDomains())
+            while not urlToCrawl:
+                domain = random.choice(domains)
+                urlToCrawl = self.redis.lpop(domain)
+                gevent.sleep(0.25)
+            self.crawlURL(urlToCrawl)
 
     def sendURLs(self, urls):
-        self.redis.lpush(redis_keys.URLS_TO_PROCESS_LIST, *urls)
+        if len(urls):
+            keys = [""] * len(urls)
+            num_inserted = self.scripts.zset_insert_urls(keys=keys, args=urls)
+            print "inserted: {}".format(num_inserted)
 
     def done_loading(self, res, **kwargs):
         url = res.url
@@ -84,9 +74,8 @@ class Worker(BaseApplication):
         links = []
         for i in tree.iterlinks():
             crawled_url = urlparse(i[2])
-            if crawled_url.path.endswith('.css') or crawled_url.path.endswith('.jpg') or crawled_url.path.endswith(
-                    '.pdf') or crawled_url.path.endswith('.js') or crawled_url.path.endswith(
-                '.png') or crawled_url.path.endswith('.ico'):
+            _, ext = os.path.splitext(crawled_url.path)
+            if ext in SKIPPED_EXTENSIONS:
                 continue
             if (urlparsed.netloc == crawled_url.netloc):
                 links.append(crawled_url.geturl())
@@ -97,4 +86,4 @@ class Worker(BaseApplication):
             'User-Agent': random.choice(UserAgents)
         }
         req = grequests.get(url, headers=headers, hooks=dict(response=self.done_loading))
-        job = grequests.send(req, grequests.Pool(1))
+        grequests.send(req, grequests.Pool(1))
