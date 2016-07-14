@@ -1,6 +1,6 @@
 import os
 from lxml import html
-from urlparse import urlparse
+from furl import furl
 import random
 import grequests
 import redis_keys
@@ -32,16 +32,10 @@ UserAgents = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2486.0 Safari/537.36 Edge/13.10586',
     'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36']
 
-SKIPPED_EXTENSIONS = {".css", ".jpg", ".pdf", ".js", ".png", ".ico"}
+SKIPPED_EXTENSIONS = {".css", ".jpg", ".jpeg", ".pdf", ".js", ".png", ".ico", ".oembed", ".swf", ".jpeg", ".json", ".mp4", ".gif", ".xml"}
 
 
 class Worker(BaseApplication):
-
-    domains = []
-    lastDomainIndex = 0
-
-    def init(self, config=None):
-        pass
 
     def start(self):
         threads = [gevent.spawn(self.crawlNewDomain) for i in xrange(10)]
@@ -69,18 +63,20 @@ class Worker(BaseApplication):
 
     def done_loading(self, res, **kwargs):
         url = res.url
-        urlparsed = urlparse(url)
+        urlparsed = furl(url)
         tree = html.fromstring(res.content)
         tree.make_links_absolute(base_url=url)
-        links = []
+        links = set()
         for i in tree.iterlinks():
-            crawled_url = urlparse(i[2])
-            _, ext = os.path.splitext(crawled_url.path)
-            if ext in SKIPPED_EXTENSIONS:
+            crawled_url = furl(i[2])
+            _, ext = os.path.splitext(crawled_url.pathstr)
+            if ext.lower() in SKIPPED_EXTENSIONS:
                 continue
-            if (urlparsed.netloc == crawled_url.netloc):
-                links.append(crawled_url.geturl())
-        self.sendURLs(links)
+            if (not self.config.SAME_DOMAIN or (self.config.SAME_DOMAIN and urlparsed.netloc == crawled_url.netloc)):
+                # remove url fragment
+                crawled_url.fragment = ''
+                links.add(crawled_url.url)
+        self.sendURLs(list(links))
 
     def crawlURL(self, url):
         headers = {

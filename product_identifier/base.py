@@ -48,6 +48,7 @@ class BaseApplication(object):
 
         self.config.DEBUG = os.environ.get("DEBUG") if os.environ.get("DEBUG") else self.config.DEBUG
         self.config.ENVIRONMENT = os.environ.get("ENVIRONMENT") if os.environ.get("ENVIRONMENT") else self.config.ENVIRONMENT
+        self.config.SAME_DOMAIN = True if os.environ.get("SAME_DOMAIN") else False
         self.config.SECRET_KEY = os.environ.get("SECRET_KEY") if os.environ.get("SECRET_KEY") else self.config.ENVIRONMENT
         self.config.SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI") if os.environ.get("SQLALCHEMY_DATABASE_URI") else self.config.SQLALCHEMY_DATABASE_URI
         self.config.REDIS['host'] = os.environ.get("REDIS_HOST") if os.environ.get("REDIS_HOST") else self.config.REDIS['host']
