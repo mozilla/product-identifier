@@ -1,5 +1,3 @@
-#from gevent import monkey
-#monkey.patch_all()
 import gevent
 import gevent.pool
 import traceback
@@ -17,6 +15,7 @@ from product_identifier.base import (
     ApplicationInitError,
 )
 from product_identifier.redis_keys import (
+    URLS_TO_PROCESS_SET,
     PROCESSED_URLS_SET,
     DOMAINS_SET,
     DB_ERRORED_URL_SET,
@@ -67,7 +66,7 @@ class Master(BaseApplication):
             while True:
                 try:
                     # TODO: succeptible to concurrency problems
-                    in_url = self.scripts.pop_zset()
+                    in_url = self.scripts.pop_zset(keys=[URLS_TO_PROCESS_SET])
                     if in_url:
                         if not self.redis.sismember(PROCESSED_URLS_SET, in_url):
                             self.flask.logger.debug("PROCESSING: {}".format(in_url))

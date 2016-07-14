@@ -1,4 +1,4 @@
-local zset_to_process_key = "zset-to-process"
+local zset_to_process_key = KEYS[1]
 local result = redis.call("ZRANGE", zset_to_process_key,  0, 0)
 local queue_top = nil
 for i, v in ipairs(result) do
