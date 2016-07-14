@@ -56,8 +56,9 @@ class Worker(BaseApplication):
             domains = list(self.getDomains())
             while not urlToCrawl:
                 domain = random.choice(domains)
-                urlToCrawl = self.redis.lpop(domain)
-                gevent.sleep(0.25)
+                urlToCrawl = self.scripts.get_url_for_domain(keys=[domain])
+                if not urlToCrawl:
+                    gevent.sleep(0.25)
             self.crawlURL(urlToCrawl)
 
     def sendURLs(self, urls):
