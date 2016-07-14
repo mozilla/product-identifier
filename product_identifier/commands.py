@@ -119,6 +119,7 @@ class GunicornServerCommand(Command):
                 # Step needed to get around flask's import time side-effects
                 from product_identifier.master import Master
                 env = Master.instance()
+                env.start()
                 return env.flask
 
             def load_config(self):

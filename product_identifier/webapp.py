@@ -9,5 +9,4 @@ def setup_routes(flask):
 def create_webapp(*args, **kwargs):
     app = Master.instance(*args, **kwargs)
     setup_routes(app.flask)
-    app.start()
     return app.flask
