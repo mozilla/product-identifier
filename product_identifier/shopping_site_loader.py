@@ -23,7 +23,7 @@ REDIS = {
 def load_initial_sites(redis):
     fname = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        "data/sites_to_crawl.json")
+        "data/shopping_sites.json")
 
     f = open(fname, 'r')
     parsed_json = json.load(f)
