@@ -8,6 +8,8 @@ class DefaultConfig(object):
 
     ENVIRONMENT = "dev"
 
+    SAME_DOMAIN = True
+
     SECRET_KEY = "moz-product-identifier-development-key"
 
     TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
