@@ -5,6 +5,7 @@ import random
 import grequests
 import redis_keys
 import gevent
+from scrapy.utils.url import canonicalize_url
 
 from product_identifier.base import (
     BaseApplication,
@@ -74,8 +75,8 @@ class Worker(BaseApplication):
                 continue
             if (not self.config.SAME_DOMAIN or (self.config.SAME_DOMAIN and urlparsed.netloc == crawled_url.netloc)):
                 # remove url fragment
-                crawled_url.fragment = ''
-                links.add(crawled_url.url)
+                canonical_url = canonicalize_url(crawled_url.url)
+                links.add(canonical_url)
         self.sendURLs(list(links))
 
     def crawlURL(self, url):
