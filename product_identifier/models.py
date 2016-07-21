@@ -11,3 +11,11 @@ class URL(db.Model):
     url = db.Column('url', db.Text(), nullable=False, unique=True, index=True)
     created_at = db.Column('created_at', db.DateTime(), server_default=db.func.now(), nullable=False, index=True)
     is_product = db.Column('is_product', db.Boolean(), server_default="0", nullable=False, index=True)
+
+
+class URLScreenshot(db.Model):
+    __tablename__ = "url_screenshot"
+
+    id = db.Column('id', db.Integer(), autoincrement=True, primary_key=True)
+    url_id = db.Column('url_id', db.Integer(), db.ForeignKey('product_url.id'))
+    img_url = db.Column('img_url', db.Text(), nullable=False)

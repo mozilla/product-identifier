@@ -24,6 +24,16 @@ class DefaultConfig(object):
 
     MASTER_HANDLER_POOL_SIZE = 5
 
+    PHANTOM_PATH = "/usr/local/bin/phantomjs"
+    PHANTOM_POOL_SIZE = 5
+    PHANTOM_WIDTH = 1366
+    PHANTOM_HEIGHT = 768
+
+    IMG_WIDTH = 200
+
+    S3_BUCKET = "moz-product-id"
+    S3_KEY_PREFIX = "imgs"
+
     REDIS = {
         "host": "localhost",
         "port": 6379,
