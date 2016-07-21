@@ -77,7 +77,7 @@ class ScreenShotter(BaseApplication):
                 driver.get(url)
                 gevent.sleep(5)
                 img_bytes = BytesIO(driver.get_screenshot_as_png())
-                driver.close()
+                driver.quit()
 
                 img = Image.open(img_bytes).convert(mode="LA")
                 factor = img.width / float(target_width)
